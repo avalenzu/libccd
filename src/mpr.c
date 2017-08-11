@@ -393,56 +393,35 @@ static void findPos(const void *obj1, const void *obj2, const ccd_t *ccd,
 {
     ccd_vec3_t dir;
     size_t i;
-    ccd_real_t b[4], sum, inv;
+    ccd_real_t b[3], sum, inv;
     ccd_vec3_t vec, p1, p2;
 
     portalDir(portal, &dir);
 
-    // use barycentric coordinates of tetrahedron to find origin
-    ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 1)->v,
-                       &ccdSimplexPoint(portal, 2)->v);
-    b[0] = ccdVec3Dot(&vec, &ccdSimplexPoint(portal, 3)->v);
-
-    ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 3)->v,
-                       &ccdSimplexPoint(portal, 2)->v);
-    b[1] = ccdVec3Dot(&vec, &ccdSimplexPoint(portal, 0)->v);
-
-    ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 0)->v,
-                       &ccdSimplexPoint(portal, 1)->v);
-    b[2] = ccdVec3Dot(&vec, &ccdSimplexPoint(portal, 3)->v);
-
+    // use barycentric coordinates of tetrahedron to find projection of origin
+    // onto the 1-2-3 plane
     ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 2)->v,
-                       &ccdSimplexPoint(portal, 1)->v);
-    b[3] = ccdVec3Dot(&vec, &ccdSimplexPoint(portal, 0)->v);
+            &ccdSimplexPoint(portal, 3)->v);
+    b[0] = ccdVec3Dot(&vec, &dir);
+    ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 3)->v,
+            &ccdSimplexPoint(portal, 1)->v);
+    b[1] = ccdVec3Dot(&vec, &dir);
+    ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 1)->v,
+            &ccdSimplexPoint(portal, 2)->v);
+    b[2] = ccdVec3Dot(&vec, &dir);
 
-	sum = b[0] + b[1] + b[2] + b[3];
+    sum = b[1] + b[2] + b[3];
 
-    if (ccdIsZero(sum) || sum < CCD_ZERO){
-		b[0] = CCD_REAL(0.);
-
-        ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 2)->v,
-                           &ccdSimplexPoint(portal, 3)->v);
-        b[1] = ccdVec3Dot(&vec, &dir);
-        ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 3)->v,
-                           &ccdSimplexPoint(portal, 1)->v);
-        b[2] = ccdVec3Dot(&vec, &dir);
-        ccdVec3Cross(&vec, &ccdSimplexPoint(portal, 1)->v,
-                           &ccdSimplexPoint(portal, 2)->v);
-        b[3] = ccdVec3Dot(&vec, &dir);
-
-		sum = b[1] + b[2] + b[3];
-	}
-
-	inv = CCD_REAL(1.) / sum;
+    inv = CCD_REAL(1.) / sum;
 
     ccdVec3Copy(&p1, ccd_vec3_origin);
     ccdVec3Copy(&p2, ccd_vec3_origin);
-    for (i = 0; i < 4; i++){
-        ccdVec3Copy(&vec, &ccdSimplexPoint(portal, i)->v1);
+    for (i = 0; i < 3; i++){
+        ccdVec3Copy(&vec, &ccdSimplexPoint(portal, i+1)->v1);
         ccdVec3Scale(&vec, b[i]);
         ccdVec3Add(&p1, &vec);
 
-        ccdVec3Copy(&vec, &ccdSimplexPoint(portal, i)->v2);
+        ccdVec3Copy(&vec, &ccdSimplexPoint(portal, i+1)->v2);
         ccdVec3Scale(&vec, b[i]);
         ccdVec3Add(&p2, &vec);
     }
