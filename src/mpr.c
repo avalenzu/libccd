@@ -410,7 +410,7 @@ static void findPos(const void *obj1, const void *obj2, const ccd_t *ccd,
             &ccdSimplexPoint(portal, 2)->v);
     b[2] = ccdVec3Dot(&vec, &dir);
 
-    sum = b[1] + b[2] + b[3];
+    sum = b[0] + b[1] + b[2];
 
     inv = CCD_REAL(1.) / sum;
 
